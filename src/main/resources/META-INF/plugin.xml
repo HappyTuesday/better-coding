@@ -1,0 +1,49 @@
+<idea-plugin>
+    <id>org.example.entity-coding-helper</id>
+    <name>Entity Coding Helper</name>
+    <vendor email="nick@nick.io" url="http://nick.io">Nick.io</vendor>
+
+    <description><![CDATA[
+    This is the plugin used to accelerate the developing of a DDD style programming
+    ]]></description>
+
+    <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.modules.java</depends>
+    <depends>com.intellij.java</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- Add your extensions here -->
+        <completion.contributor language="JAVA" implementationClass="io.nick.plugin.better.coding.model.repository.EntityToDTOCompletionContributor"/>
+        <completion.contributor language="JAVA" implementationClass="io.nick.plugin.better.coding.model.repository.EntityInitFromDTOCompletionContributor"/>
+        <completion.contributor language="JAVA" implementationClass="io.nick.plugin.better.coding.model.repository.EntityOfKeyCompletionContributor"/>
+        <completion.contributor language="JAVA" implementationClass="io.nick.plugin.better.coding.model.repository.RestoreEntityCompletionContributor"/>
+        <completion.contributor language="JAVA" implementationClass="io.nick.plugin.better.coding.model.repository.PersisterFieldCompletionContributor"/>
+        <completion.contributor language="JAVA" implementationClass="io.nick.plugin.better.coding.model.repository.TrackerFieldCompletionContributor"/>
+        <completion.contributor language="JAVA" implementationClass="io.nick.plugin.better.coding.app.copier.CopyToInfoCompletionContributor"/>
+        <intentionAction>
+            <className>io.nick.plugin.better.coding.coding.PropertyAssignIntentionAction</className>
+        </intentionAction>
+        <notificationGroup id="EntityCodingHelper" displayType="BALLOON"/>
+    </extensions>
+
+    <actions>
+        <!-- Add your actions here -->
+        <action id="CreateEntity" class="io.nick.plugin.better.coding.model.entity.CreateEntityClassAction">
+            <add-to-group group-id="NewGroup1"/>
+        </action>
+        <action id="AddEntityToRepository" class="io.nick.plugin.better.coding.model.entity.AddEntityToRepositoryAction">
+            <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="Generate"/>
+        </action>
+        <action id="CreateInfo" class="io.nick.plugin.better.coding.api.info.CreateInfoClassAction">
+            <add-to-group group-id="NewGroup1"/>
+        </action>
+        <action id="ImportFieldsFromDTO" class="io.nick.plugin.better.coding.api.info.ImportFieldsFromDTOAction">
+            <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="Generate"/>
+        </action>
+        <action id="ConvertToInfoAction" class="io.nick.plugin.better.coding.app.ConvertToInfoAction">
+            <add-to-group group-id="NewGroup1"/>
+        </action>
+    </actions>
+</idea-plugin>
