@@ -1,10 +1,33 @@
 <idea-plugin>
-    <id>org.example.entity-coding-helper</id>
-    <name>Entity Coding Helper</name>
-    <vendor email="nick@nick.io" url="http://nick.io">Nick.io</vendor>
+    <id>io.nick.better.coding</id>
+    <name>Better Coding</name>
+    <vendor email="HappyTuesday@live.cn" url="https://github.com/HappyTuesday/">Nick</vendor>
 
     <description><![CDATA[
-    This is the plugin used to accelerate the developing of a DDD style programming
+    A Intellij plugin designed for better coding with Java.
+
+    <p>Following are supported:</p>
+    <ul>
+        <li><p>Generate fields and properties assigning statements between two variables in a code block.</p>
+            <p>Write an assignment expression and open the intention context menu, then click "Property Assign" to use it.</p></li>
+        <li><p>Create an Info class (here means view model) based on a DTO class, the generated Info class depends on the DTO class's name and fields.</p>
+            <p>Right-click on a package folder in the "Project" view, and then click "New" and "Info Class" to use it.</p></li>
+        <li><p>Import fields into an Info class from a DTO class, including their types, names and documents.</p>
+            <p>Right-click in an Info class, and then click "Import Fields from DTO" context menu to use it.</p></li>
+        <li><p>Create a converter class used to convert a DTO to an Info object, or a list of DTOs to a list of Info objects, DTO or Info class joining also supported.</p>
+            <p>Right-click on a package folder (which must contains a subfolder named "converter" or "converters"), and then click "New" and "Converter Class".</p>
+            <p>Then a config dialog will be shown to let you specify the Info class to convert to, the DTO class to convert from and all related joins.</p>
+            <p>This function use the SQL model to express the internal logic of a multi table related query, which will influence the generated code entirely.</p>
+            <p>Note, this command will also generate related fetchers (used to query db), and copiers (used to copy fields from DTO to Info class).</p>
+            <p>We hope you are familiar with this design.</p></li>
+        <li><p>Create an Entity class (the same meaning in DDD) based on a DTO class, according to its fields (name, type and comments) and name.</p>
+            <p>Right-click on a package folder, and then click "New" and "Entity class" to use it.</p></li>
+        <li><p>Add repository support for an Entity class, which means to generate a set of classes, fields and methods to support the entity's basic function.</p>
+            <p>This including converting a DTO to an Entity, tracking all restored or new-created entities, restore an entity from DB, etc.</p>
+            <p>Right-click an entity class, and then click "Add To Repository" context menu to use it.</p></li>
+        <li><p>Other useful completion contributors.</p></li>
+
+    <em>Enjoy it!</em>
     ]]></description>
 
     <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
