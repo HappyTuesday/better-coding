@@ -4,10 +4,7 @@ import com.intellij.codeInsight.completion.CompletionResultSet;
 import com.intellij.codeInsight.lookup.LookupElement;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
-import io.nick.plugin.better.coding.proxy.DtoProxy;
-import io.nick.plugin.better.coding.proxy.EntityProxy;
-import io.nick.plugin.better.coding.proxy.PersisterProxy;
-import io.nick.plugin.better.coding.proxy.RepoProxy;
+import io.nick.plugin.better.coding.proxy.*;
 
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,18 +21,18 @@ public class EntityOfKeyCompletionContributor extends RepoMemberForEntityContrib
 
     @Override
     protected void collectSuggestedMembersForEntity(CompletionResultSet result, RepoProxy repoProxy, EntityProxy entityProxy, DtoProxy dtoProxy) {
-        for (PsiField field : entityProxy.getFields()) {
+        for (DtoField field : dtoProxy.getDtoFields()) {
             PsiType type = field.getType();
             if (!(type instanceof PsiClassType)) continue;
             String className = ((PsiClassType) type).getClassName();
             if (!SUPPORTED_KEY_TYPES.contains(className)) continue;
             for (PersisterProxy persisterProxy : PersisterProxy.suggestedForRepo(repoProxy, true)) {
-                ClassMemberHandler handlerOfKey = new MethodHandlerOfKeyImpl(repoProxy, entityProxy, dtoProxy, persisterProxy, field);
+                ClassMemberHandler handlerOfKey = new MethodHandlerOfKeyImpl(repoProxy, entityProxy, persisterProxy, field);
                 LookupElement elementOfKey = handlerOfKey.buildLookupElement();
                 if (elementOfKey != null) {
                     result.addElement(elementOfKey);
                 }
-                ClassMemberHandler handlerOfKeys = new MethodHandlerOfKeysImpl(repoProxy, entityProxy, dtoProxy, persisterProxy, field);
+                ClassMemberHandler handlerOfKeys = new MethodHandlerOfKeysImpl(repoProxy, entityProxy, persisterProxy, field);
                 LookupElement elementOfKeys = handlerOfKeys.buildLookupElement();
                 if (elementOfKeys != null) {
                     result.addElement(elementOfKeys);
@@ -47,14 +44,12 @@ public class EntityOfKeyCompletionContributor extends RepoMemberForEntityContrib
     public static class MethodHandlerOfKeyImpl extends ClassMethodHandler {
         private final RepoProxy repoProxy;
         private final EntityProxy entityProxy;
-        private final DtoProxy dtoProxy;
         private final PersisterProxy persisterProxy;
-        private final PsiField keyField;
+        private final DtoField keyField;
 
-        public MethodHandlerOfKeyImpl(RepoProxy repoProxy, EntityProxy entityProxy, DtoProxy dtoProxy, PersisterProxy persisterProxy, PsiField keyField) {
+        public MethodHandlerOfKeyImpl(RepoProxy repoProxy, EntityProxy entityProxy, PersisterProxy persisterProxy, DtoField keyField) {
             this.repoProxy = repoProxy;
             this.entityProxy = entityProxy;
-            this.dtoProxy = dtoProxy;
             this.persisterProxy = persisterProxy;
             this.keyField = keyField;
         }
@@ -76,21 +71,19 @@ public class EntityOfKeyCompletionContributor extends RepoMemberForEntityContrib
 
         @Override
         public PsiMethod generateMember() {
-            return repoProxy.createEntityOfKeyMethod(entityProxy, persisterProxy, dtoProxy, keyField);
+            return repoProxy.createEntityOfKeyMethod(entityProxy, persisterProxy, keyField);
         }
     }
 
     public static class MethodHandlerOfKeysImpl extends ClassMethodHandler {
         private final RepoProxy repoProxy;
         private final EntityProxy entityProxy;
-        private final DtoProxy dtoProxy;
         private final PersisterProxy persisterProxy;
-        private final PsiField keyField;
+        private final DtoField keyField;
 
-        public MethodHandlerOfKeysImpl(RepoProxy repoProxy, EntityProxy entityProxy, DtoProxy dtoProxy, PersisterProxy persisterProxy, PsiField keyField) {
+        public MethodHandlerOfKeysImpl(RepoProxy repoProxy, EntityProxy entityProxy, PersisterProxy persisterProxy, DtoField keyField) {
             this.repoProxy = repoProxy;
             this.entityProxy = entityProxy;
-            this.dtoProxy = dtoProxy;
             this.persisterProxy = persisterProxy;
             this.keyField = keyField;
         }
@@ -112,7 +105,7 @@ public class EntityOfKeyCompletionContributor extends RepoMemberForEntityContrib
 
         @Override
         public PsiMethod generateMember() {
-            return repoProxy.createEntityOfKeysMethod(entityProxy, persisterProxy, dtoProxy, keyField);
+            return repoProxy.createEntityOfKeysMethod(entityProxy, persisterProxy, keyField);
         }
     }
 }

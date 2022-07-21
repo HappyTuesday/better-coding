@@ -1,12 +1,10 @@
 package io.nick.plugin.better.coding.proxy;
 
-import com.intellij.ide.fileTemplates.JavaTemplateUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
-import io.nick.plugin.better.coding.utils.CodingUtils;
 import io.nick.plugin.better.coding.utils.FieldTemplate;
 
 import java.util.ArrayList;
@@ -22,32 +20,10 @@ public class InfoProxy extends PsiClassProxy {
     }
 
     @Override
-    public PsiClass createClassIfNotExist() {
-        if (psiClass != null) {
-            return psiClass;
-        }
-        psiClass = CodingUtils.createJavaClass(className, JavaTemplateUtil.INTERNAL_CLASS_TEMPLATE_NAME, directory);
-        afterClassCreated();
-        return psiClass;
-    }
-
-    public void afterClassCreated() {
-        PsiElementFactory factory = getFactory();
-        PsiClass description = CodingUtils.findClassInAllScopeByName("Description", "annotation", getProject());
-        if (description != null && description.getQualifiedName() != null && !psiClass.hasAnnotation(description.getQualifiedName())) {
-            String descriptionTex = String.format("@%s(\"%s\")", description.getQualifiedName(), className);
-            PsiAnnotation descriptionAnnotation = factory.createAnnotationFromText(descriptionTex, psiClass);
-            psiClass.addBefore(descriptionAnnotation, psiClass.getModifierList());
-        }
-        PsiClass baseEntity = CodingUtils.findClassInAllScopeByName("BaseEntity", "common.entity", getProject());
-        if (baseEntity != null) {
-            PsiClass oldSuper = psiClass.getSuperClass();
-            if (oldSuper == null || "java.lang.Object".equals(oldSuper.getQualifiedName())) {
-                PsiElement extendsElement = psiClass.addAfter(factory.createKeyword("extends", psiClass), psiClass.getNameIdentifier());
-                psiClass.addAfter(factory.createTypeElement(factory.createType(baseEntity)), extendsElement);
-            }
-        }
-        CodingUtils.shortenClassReferences(psiClass);
+    protected PsiClass doCreateClass() {
+        return classTemplate()
+            .pass("infoProxy", this)
+            .create("info/info-class.ftl", getSettings().getInfoClassTemplate());
     }
 
     public List<InfoField> getInfoFields() {
@@ -105,17 +81,16 @@ public class InfoProxy extends PsiClassProxy {
     }
 
     public void importFieldsFromDTO(List<DtoField> dtoFields) {
-        PsiClass description = CodingUtils.findClassInAllScopeByName("Description", "annotation", getProject());
-        if (description == null) {
-            return;
-        }
-        createClassIfNotExist();
         for (DtoField dtoField : dtoFields) {
-            importFieldFromDTO(dtoField, description);
+            importFieldFromDTO(dtoField);
         }
     }
 
-    private void importFieldFromDTO(DtoField dtoField, PsiClass description) {
+    private void importFieldFromDTO(DtoField dtoField) {
+        if (dtoField.isLogicalDeleteField()) {
+            return;
+        }
+        createClassIfNotExist();
         InfoField infoField = findInfoField(dtoField.getName());
         String fieldPrefix;
         if (infoField != null) {
@@ -134,9 +109,8 @@ public class InfoProxy extends PsiClassProxy {
         }
         new FieldTemplate(psiClass)
             .pass("dtoField", dtoField)
-            .pass("descriptionClass", description)
             .pass("fieldPrefix", fieldPrefix)
-            .generateAndAdd("info/add-field-from-dto.ftl");
+            .generateAndAdd("add-field-from-dto", getSettings().getInfoFieldTemplate());
     }
 
     public static InfoProxy createForName(String infoClassName, Project project) {

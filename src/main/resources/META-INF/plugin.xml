@@ -30,6 +30,8 @@
     <em>Enjoy it!</em>
     ]]></description>
 
+    <idea-version since-build="202"/>
+
     <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
          on how to target different products -->
     <depends>com.intellij.modules.platform</depends>
@@ -49,6 +51,11 @@
             <className>io.nick.plugin.better.coding.coding.PropertyAssignIntentionAction</className>
         </intentionAction>
         <notificationGroup id="EntityCodingHelper" displayType="BALLOON"/>
+        <applicationConfigurable
+                parentId="tools"
+                instance="io.nick.plugin.better.coding.settings.BetterCodingSettingsConfigurable"
+                id="io.nick.plugin.better.coding.settings.BetterCodingSettingsConfigurable"
+                displayName="Better Coding"/>
     </extensions>
 
     <actions>

@@ -18,12 +18,12 @@ import java.util.Set;
 
 public class PropertyAssignIntentionAction extends BaseElementAtCaretIntentionAction {
     @Override
-    public @IntentionName @NotNull String getText() {
+    public @NotNull String getText() {
         return "Assign properties";
     }
 
     @Override
-    public @NotNull @IntentionFamilyName String getFamilyName() {
+    public @NotNull String getFamilyName() {
         return "Coding assist";
     }
 

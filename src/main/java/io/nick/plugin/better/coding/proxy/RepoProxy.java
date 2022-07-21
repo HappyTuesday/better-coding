@@ -1,12 +1,8 @@
 package io.nick.plugin.better.coding.proxy;
 
-import com.intellij.ide.fileTemplates.JavaTemplateUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
-import io.nick.plugin.better.coding.utils.CodingUtils;
-import io.nick.plugin.better.coding.utils.EntityHelper;
-import io.nick.plugin.better.coding.utils.FieldTemplate;
-import io.nick.plugin.better.coding.utils.MethodTemplate;
+import io.nick.plugin.better.coding.utils.*;
 
 import java.util.*;
 
@@ -21,15 +17,8 @@ public class RepoProxy extends PsiClassProxy {
     }
 
     @Override
-    public PsiClass createClassIfNotExist() {
-        if (psiClass != null) {
-            return psiClass;
-        }
-        psiClass = CodingUtils.createJavaClass(className, JavaTemplateUtil.INTERNAL_CLASS_TEMPLATE_NAME, directory);
-        PsiAnnotation repoAnnotation = getFactory().createAnnotationFromText("@org.springframework.stereotype.Repository", psiClass);
-        psiClass.addBefore(repoAnnotation, psiClass.getModifierList());
-        CodingUtils.shortenClassReferences(psiClass);
-        return psiClass;
+    protected PsiClass doCreateClass() {
+        return classTemplate().pass("repoProxy", this).create("repository/repository-class.ftl");
     }
 
     public String getPersisterFieldName(PersisterProxy persisterProxy) {
@@ -56,11 +45,11 @@ public class RepoProxy extends PsiClassProxy {
         return "init" + entityProxy.className + "FromDTO";
     }
 
-    public String getEntityOfKeyMethodName(EntityProxy entityProxy, PsiField keyField) {
+    public String getEntityOfKeyMethodName(EntityProxy entityProxy, DtoField keyField) {
         return String.format("%sOf%s", StringUtil.decapitalize(entityProxy.className), StringUtil.capitalize(keyField.getName()));
     }
 
-    public String getEntityOfKeysMethodName(EntityProxy entityProxy, PsiField keyField) {
+    public String getEntityOfKeysMethodName(EntityProxy entityProxy, DtoField keyField) {
         return String.format("%sOf%s", StringUtil.decapitalize(entityProxy.className), StringUtil.pluralize(StringUtil.capitalize(keyField.getName())));
     }
 
@@ -89,17 +78,10 @@ public class RepoProxy extends PsiClassProxy {
 
     public PsiField createTrackerField(EntityProxy entityProxy, DtoProxy dtoProxy, PersisterProxy persisterProxy) {
         createClassIfNotExist();
-        PsiClass trackerClass = CodingUtils.findClassInAllScopeByName("EntityTracker", "common.utils.entity", getProject());
-        PsiClass trackersClass = CodingUtils.findClassInAllScopeByName("EntityTrackers", "common.utils.entity", getProject());
-        if (trackersClass == null || trackerClass == null) {
-            return null;
-        }
         return fieldTemplate()
             .pass("entityProxy", entityProxy)
             .pass("dtoProxy", dtoProxy)
             .pass("persisterProxy", persisterProxy)
-            .pass("trackerClass", trackerClass)
-            .pass("trackersClass", trackersClass)
             .generate("repository/tracker-field.ftl");
     }
 
@@ -167,20 +149,18 @@ public class RepoProxy extends PsiClassProxy {
             .build("repository/convert-to-dto.ftl");
     }
 
-    public PsiMethod createEntityOfKeyMethod(EntityProxy entityProxy, PersisterProxy persisterProxy, DtoProxy dtoProxy, PsiField keyField) {
+    public PsiMethod createEntityOfKeyMethod(EntityProxy entityProxy, PersisterProxy persisterProxy, DtoField keyField) {
         createClassIfNotExist();
         return methodTemplate()
-            .pass("dtoProxy", dtoProxy)
             .pass("keyField", keyField)
             .pass("entityProxy", entityProxy)
             .pass("persisterProxy", persisterProxy)
             .build("repository/entity-of-key.ftl");
     }
 
-    public PsiMethod createEntityOfKeysMethod(EntityProxy entityProxy, PersisterProxy persisterProxy, DtoProxy dtoProxy, PsiField keyField) {
+    public PsiMethod createEntityOfKeysMethod(EntityProxy entityProxy, PersisterProxy persisterProxy, DtoField keyField) {
         createClassIfNotExist();
         return methodTemplate()
-            .pass("dtoProxy", dtoProxy)
             .pass("keyField", keyField)
             .pass("entityProxy", entityProxy)
             .pass("persisterProxy", persisterProxy)
@@ -193,6 +173,14 @@ public class RepoProxy extends PsiClassProxy {
 
     public List<PsiClass> relatedEntityClasses() {
         return EntityHelper.entityClassesInDir(directory);
+    }
+
+    public String renderEntityNotFound(EntityProxy entityProxy, DtoField keyField) {
+        Map<String, Object> params = new HashMap<>();
+        params.put("entityProxy", entityProxy);
+        params.put("keyField", keyField);
+        String template = getSettings().getEntityNotFoundTemplate();
+        return CodeTemplate.INSTANCE.render("entity-not-found", template, params);
     }
 
     private MethodTemplate methodTemplate() {

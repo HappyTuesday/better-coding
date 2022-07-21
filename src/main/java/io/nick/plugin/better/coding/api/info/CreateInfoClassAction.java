@@ -57,17 +57,10 @@ public class CreateInfoClassAction extends AnAction implements UpdateInBackgroun
             return;
         }
         List<DtoField> dtoFields = dialog.getSelectedDtoFields();
-
         String infoClassName = dialog.getSelectedDtoProxy().getClassName().replace("DTO", "Info");
-        PsiClass infoClass = CodingUtils.createJavaClass(infoClassName, JavaTemplateUtil.INTERNAL_CLASS_TEMPLATE_NAME, dir);
-        if (infoClass == null) {
-            return;
-        }
-
-        CodingUtils.configureSDK(dir);
-        InfoProxy infoProxy = new InfoProxy(infoClass);
+        InfoProxy infoProxy = new InfoProxy(dir, infoClassName);
         CodingUtils.modifyPsi(project, "Import Fields From DTO", () -> {
-            infoProxy.afterClassCreated();
+            infoProxy.createClassIfNotExist();
             infoProxy.importFieldsFromDTO(dtoFields);
         });
     }

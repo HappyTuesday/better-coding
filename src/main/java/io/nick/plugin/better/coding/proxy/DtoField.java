@@ -51,7 +51,7 @@ public class DtoField {
 
     public boolean isLogicalDeleteField() {
         String name = getName();
-        return "markedAsDeleted".equals(name) || "is_deleted".equals(name) || "is_delete".equals(name);
+        return dtoProxy.getSettings().getLogicalDeleteFields().contains(name);
     }
 
     private static class DtoFieldCommentExtractor extends JavaRecursiveElementVisitor {

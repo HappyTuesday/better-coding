@@ -1,10 +1,13 @@
 package io.nick.plugin.better.coding.proxy;
 
+import com.intellij.ide.util.PackageUtil;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.impl.file.PsiJavaDirectoryFactory;
 import com.intellij.psi.util.PropertyUtil;
+import io.nick.plugin.better.coding.settings.BetterCodingSettings;
+import io.nick.plugin.better.coding.utils.ClassTemplate;
 import io.nick.plugin.better.coding.utils.CodingUtils;
 import io.nick.plugin.better.coding.utils.EntityHelper;
 import io.nick.plugin.better.coding.utils.FieldTemplate;
@@ -34,7 +37,18 @@ public abstract class PsiClassProxy {
         return Objects.requireNonNull(psiClass);
     }
 
-    public abstract PsiClass createClassIfNotExist();
+    public PsiClass createClassIfNotExist() {
+        if (psiClass == null) {
+            psiClass = doCreateClass();
+        }
+        return psiClass;
+    }
+
+    protected abstract PsiClass doCreateClass();
+
+    protected ClassTemplate classTemplate() {
+        return new ClassTemplate(directory, getClassName());
+    }
 
     public boolean isClassCreated() {
         return psiClass != null;
@@ -74,6 +88,10 @@ public abstract class PsiClassProxy {
 
     public PsiDirectory getDirectory() {
         return directory;
+    }
+
+    public String getPackageName() {
+        return StringUtil.getPackageName(getQualifiedName());
     }
 
     public PsiMethod[] getMethods() {
@@ -155,17 +173,12 @@ public abstract class PsiClassProxy {
             return false;
         }
     }
-
-    public PsiClass getServiceRuntimeExceptionClass() {
-        return CodingUtils.findClassInAllScopeByName("ServiceRuntimeException", "entity", directory.getProject());
-    }
-
-    public PsiClass getApiReturnCodeClass() {
-        return CodingUtils.findClassInAllScopeByName("ApiReturnCode", "entity", directory.getProject());
-    }
-
     public String pluralize(String word) {
         return StringUtil.pluralize(word);
+    }
+
+    public BetterCodingSettings getSettings() {
+        return BetterCodingSettings.getInstance(getProject());
     }
 
     @Override

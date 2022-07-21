@@ -20,6 +20,8 @@ dependencies {
 intellij {
     version = '2021.2.2'
     plugins = ['com.intellij.java']
+    updateSinceUntilBuild = false
+    downloadSources = true
 }
 patchPluginXml {
     changeNotes = """Plugin description refined"""

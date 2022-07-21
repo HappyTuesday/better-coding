@@ -9,11 +9,8 @@ public class ExampleProxy extends PsiClassProxy {
     }
 
     @Override
-    public PsiClass createClassIfNotExist() {
-        if (psiClass == null) {
-            throw new UnsupportedOperationException();
-        }
-        return psiClass;
+    protected PsiClass doCreateClass() {
+        throw new UnsupportedOperationException();
     }
 
     public static ExampleProxy forDto(DtoProxy dtoProxy) {

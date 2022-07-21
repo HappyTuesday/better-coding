@@ -1,15 +1,15 @@
 package io.nick.plugin.better.coding.proxy;
 
-import com.intellij.ide.fileTemplates.JavaTemplateUtil;
 import com.intellij.psi.PsiClass;
 import com.intellij.psi.PsiDirectory;
 import com.intellij.psi.PsiField;
+import io.nick.plugin.better.coding.utils.ClassTemplate;
 import io.nick.plugin.better.coding.utils.CodingUtils;
 import io.nick.plugin.better.coding.utils.EntityHelper;
 import io.nick.plugin.better.coding.utils.FieldTemplate;
 
 public class EntityProxy extends PsiClassProxy {
-    private EntityProxy(PsiDirectory directory, String className) {
+    public EntityProxy(PsiDirectory directory, String className) {
         super(directory, className);
     }
 
@@ -18,15 +18,14 @@ public class EntityProxy extends PsiClassProxy {
     }
 
     @Override
-    public PsiClass createClassIfNotExist() {
-        if (psiClass != null) {
-            return psiClass;
-        }
-        psiClass = CodingUtils.createJavaClass(className, JavaTemplateUtil.INTERNAL_INTERFACE_TEMPLATE_NAME, directory);
-        return psiClass;
+    protected PsiClass doCreateClass() {
+        return classTemplate().pass("entityProxy", this).create("entity/entity-class.ftl");
     }
 
     public void importFieldFromDTO(DtoField dtoField) {
+        if (dtoField.isLogicalDeleteField()) {
+            return;
+        }
         new FieldTemplate(createClassIfNotExist())
             .pass("dtoField", dtoField)
             .generateAndAdd("entity/add-field-from-dto.ftl");

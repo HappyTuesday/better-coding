@@ -43,7 +43,8 @@ public class MyComboBox<E> extends ComboBox<MyComboBox.Item<E>> {
     }
 
     public E getElement() {
-        Item<E> item = getItem();
+        //noinspection unchecked
+        Item<E> item = (Item<E>) getSelectedItem();
         return item != null ? item.data : null;
     }
 
@@ -52,7 +53,7 @@ public class MyComboBox<E> extends ComboBox<MyComboBox.Item<E>> {
         for (int i = 0; i < model.getSize(); i++) {
             Item<E> item = model.getElementAt(i);
             if (Objects.equals(item.data, element)) {
-                setItem(item);
+                setSelectedItem(item);
                 break;
             }
         }

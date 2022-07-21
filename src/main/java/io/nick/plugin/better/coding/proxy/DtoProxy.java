@@ -21,12 +21,8 @@ public class DtoProxy extends PsiClassProxy {
     }
 
     @Override
-    public PsiClass createClassIfNotExist() {
-        if (psiClass != null) {
-            return psiClass;
-        }
-        psiClass = CodingUtils.createJavaClass(className, JavaTemplateUtil.INTERNAL_INTERFACE_TEMPLATE_NAME, directory);
-        return psiClass;
+    protected PsiClass doCreateClass() {
+        throw new UnsupportedOperationException();
     }
 
     public DtoField getDtoField(String fieldName) {

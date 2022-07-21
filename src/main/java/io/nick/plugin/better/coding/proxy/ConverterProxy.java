@@ -7,6 +7,7 @@ import io.nick.plugin.better.coding.app.AppSchema;
 import io.nick.plugin.better.coding.app.QueryModel;
 import io.nick.plugin.better.coding.app.converter.BatchConvertToInfoMethod;
 import io.nick.plugin.better.coding.app.converter.ConvertToInfoMethod;
+import io.nick.plugin.better.coding.utils.ClassTemplate;
 import io.nick.plugin.better.coding.utils.CodingUtils;
 
 public class ConverterProxy extends PsiClassProxy {
@@ -19,23 +20,8 @@ public class ConverterProxy extends PsiClassProxy {
     }
 
     @Override
-    public PsiClass createClassIfNotExist() {
-        if (psiClass != null) {
-            return psiClass;
-        }
-        psiClass = CodingUtils.createJavaClass(className, JavaTemplateUtil.INTERNAL_CLASS_TEMPLATE_NAME, directory);
-        afterClassCreated();
-        return psiClass;
-    }
-
-    public void afterClassCreated() {
-        PsiElementFactory factory = getFactory();
-        String serviceFullName = "org.springframework.stereotype.Service";
-        if (!psiClass.hasAnnotation(serviceFullName)) {
-            PsiAnnotation serviceAnnotation = factory.createAnnotationFromText("@" + serviceFullName, psiClass);
-            psiClass.addBefore(serviceAnnotation, psiClass.getModifierList());
-        }
-        CodingUtils.shortenClassReferences(psiClass);
+    protected PsiClass doCreateClass() {
+        return classTemplate().pass("converterProxy", this).create("converter/converter-class.ftl");
     }
 
     public void addFetcherField(DtoProxy dtoProxy, FetcherProxy fetcherProxy) {

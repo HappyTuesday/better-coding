@@ -21,23 +21,8 @@ public class FetcherProxy extends PsiClassProxy {
     }
 
     @Override
-    public PsiClass createClassIfNotExist() {
-        if (psiClass != null) {
-            return psiClass;
-        }
-        psiClass = CodingUtils.createJavaClass(className, JavaTemplateUtil.INTERNAL_CLASS_TEMPLATE_NAME, directory);
-        afterClassCreated();
-        return psiClass;
-    }
-
-    public void afterClassCreated() {
-        PsiElementFactory factory = getFactory();
-        String serviceFullName = "org.springframework.stereotype.Service";
-        if (!psiClass.hasAnnotation(serviceFullName)) {
-            PsiAnnotation serviceAnnotation = factory.createAnnotationFromText("@" + serviceFullName, psiClass);
-            psiClass.addBefore(serviceAnnotation, psiClass.getModifierList());
-        }
-        CodingUtils.shortenClassReferences(psiClass);
+    protected PsiClass doCreateClass() {
+        return classTemplate().pass("fetcherProxy", this).create("fetcher/fetcher-class.ftl");
     }
 
     public void addFindByFiltersMethod(DtoProxy dtoProxy, OrderByClause orderByClause, boolean withLimit, List<FieldFilter> filters) {

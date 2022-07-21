@@ -1,6 +1,5 @@
 package io.nick.plugin.better.coding.proxy;
 
-import com.intellij.ide.fileTemplates.JavaTemplateUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import io.nick.plugin.better.coding.utils.CodingUtils;
@@ -16,23 +15,8 @@ public class CopierProxy extends PsiClassProxy {
     }
 
     @Override
-    public PsiClass createClassIfNotExist() {
-        if (psiClass != null) {
-            return psiClass;
-        }
-        psiClass = CodingUtils.createJavaClass(className, JavaTemplateUtil.INTERNAL_CLASS_TEMPLATE_NAME, directory);
-        afterClassCreated();
-        return psiClass;
-    }
-
-    public void afterClassCreated() {
-        PsiElementFactory factory = getFactory();
-        String serviceFullName = "org.springframework.stereotype.Service";
-        if (!psiClass.hasAnnotation(serviceFullName)) {
-            PsiAnnotation serviceAnnotation = factory.createAnnotationFromText("@" + serviceFullName, psiClass);
-            psiClass.addBefore(serviceAnnotation, psiClass.getModifierList());
-        }
-        CodingUtils.shortenClassReferences(psiClass);
+    protected PsiClass doCreateClass() {
+        return classTemplate().pass("copierProxy", this).create("copier/copier-class.ftl");
     }
 
     public static String getCopyToInfoMethodName(InfoProxy target, DtoProxy source) {

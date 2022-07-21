@@ -1,6 +1,5 @@
 package io.nick.plugin.better.coding.proxy;
 
-import com.intellij.ide.fileTemplates.JavaTemplateUtil;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import io.nick.plugin.better.coding.utils.CodingUtils;
@@ -21,24 +20,20 @@ public class PersisterProxy extends PsiClassProxy {
     }
 
     @Override
-    public PsiClass createClassIfNotExist() {
-        if (psiClass != null) {
-            return psiClass;
-        }
-        psiClass = CodingUtils.createJavaClass(className, JavaTemplateUtil.INTERNAL_INTERFACE_TEMPLATE_NAME, directory);
-        return psiClass;
+    protected PsiClass doCreateClass() {
+        return classTemplate().pass("persisterProxy", this).create("persister/persister-class.ftl");
     }
 
     public String getUpdateDTOMethodName(DtoProxy dtoProxy) {
         return "update" + StringUtil.trimEnd(dtoProxy.className, "DTO");
     }
 
-    public String getFindDTOByKeyMethodName(DtoProxy dtoProxy, PsiField keyField) {
-        return "find" + StringUtil.trimEnd(dtoProxy.className, "DTO") + "By" + StringUtil.capitalize(keyField.getName());
+    public String getFindDTOByKeyMethodName(DtoField keyField) {
+        return "find" + StringUtil.trimEnd(keyField.dtoProxy.className, "DTO") + "By" + StringUtil.capitalize(keyField.getName());
     }
 
-    public String getFindDTOByKeysMethodName(DtoProxy dtoProxy, PsiField keyField) {
-        return "find" + StringUtil.trimEnd(dtoProxy.className, "DTO") + "By" + StringUtil.pluralize(StringUtil.capitalize(keyField.getName()));
+    public String getFindDTOByKeysMethodName(DtoField keyField) {
+        return "find" + StringUtil.trimEnd(keyField.dtoProxy.className, "DTO") + "By" + StringUtil.pluralize(StringUtil.capitalize(keyField.getName()));
     }
 
     public void addUpdateEntityMethod(DtoProxy dtoProxy) {

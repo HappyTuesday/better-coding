@@ -60,13 +60,7 @@ public class CreateEntityClassAction extends AnAction implements UpdateInBackgro
         List<DtoField> dtoFields = dialog.getSelectedDtoFields();
 
         String entityClassName = StringUtil.trimEnd(dialog.getSelectedDtoProxy().getClassName(), "DTO");
-        PsiClass entityClass = CodingUtils.createJavaClass(entityClassName, JavaTemplateUtil.INTERNAL_CLASS_TEMPLATE_NAME, dir);
-        if (entityClass == null) {
-            return;
-        }
-
-        CodingUtils.configureSDK(dir);
-        EntityProxy entityProxy = new EntityProxy(entityClass);
+        EntityProxy entityProxy = new EntityProxy(dir, entityClassName);
         CodingUtils.modifyPsi(project, "Import Fields From DTO", () -> {
             for (DtoField dtoField : dtoFields) {
                 entityProxy.importFieldFromDTO(dtoField);

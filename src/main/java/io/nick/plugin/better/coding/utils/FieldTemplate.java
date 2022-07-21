@@ -30,11 +30,25 @@ public class FieldTemplate {
         return JavaPsiFacade.getElementFactory(declaringClass.getProject()).createFieldFromText(text, declaringClass);
     }
 
+    public PsiField generate(String templateName, String templateBody) {
+        String text = CodeTemplate.INSTANCE.render(templateName, templateBody, templateParams).stripLeading();
+        if (StringUtil.isEmptyOrSpaces(text)) {
+            return null;
+        }
+        return JavaPsiFacade.getElementFactory(declaringClass.getProject()).createFieldFromText(text, declaringClass);
+    }
+
     public void generateAndAdd(String templateName) {
         PsiField field = generate(templateName);
         if (field != null) {
             CodingUtils.addFieldToClass(field, declaringClass);
+        }
+    }
 
+    public void generateAndAdd(String templateName, String templateBody) {
+        PsiField field = generate(templateName, templateBody);
+        if (field != null) {
+            CodingUtils.addFieldToClass(field, declaringClass);
         }
     }
 }

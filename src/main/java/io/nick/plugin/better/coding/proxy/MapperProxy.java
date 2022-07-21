@@ -10,11 +10,8 @@ public class MapperProxy extends PsiClassProxy {
     }
 
     @Override
-    public PsiClass createClassIfNotExist() {
-        if (psiClass == null) {
-            throw new IllegalStateException();
-        }
-        return psiClass;
+    protected PsiClass doCreateClass() {
+        throw new UnsupportedOperationException();
     }
 
     public String getQualifiedExampleName() {

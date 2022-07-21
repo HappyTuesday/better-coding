@@ -4,7 +4,7 @@
 private ${dtoProxy.qualifiedName} ${repoProxy.convertToDTOMethodName(entityProxy)}(${entityProxy.qualifiedName} ${entityProxy.varName}) {
     ${dtoProxy.qualifiedName} ${dtoProxy.varName} = new ${dtoProxy.qualifiedName}();
     <#list dtoProxy.dtoFields as dtoField>
-        <#if dtoField.name == 'markedAsDeleted'>
+        <#if dtoField.logicalDeleteField>
             ${dtoProxy.varName}.${dtoField.setter.name}(false);
             <#continue>
         </#if>

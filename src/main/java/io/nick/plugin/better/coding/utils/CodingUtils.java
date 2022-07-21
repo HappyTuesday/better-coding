@@ -1,43 +1,31 @@
 package io.nick.plugin.better.coding.utils;
 
 import com.intellij.ide.IdeView;
-import com.intellij.ide.actions.CreateFileAction;
 import com.intellij.ide.actions.ElementCreator;
+import com.intellij.ide.highlighter.JavaFileType;
+import com.intellij.lang.java.JavaLanguage;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.application.WriteAction;
-import com.intellij.openapi.diagnostic.Logger;
-import com.intellij.openapi.module.GeneralModuleType;
+import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.module.Module;
-import com.intellij.openapi.module.ModuleType;
 import com.intellij.openapi.module.ModuleUtilCore;
-import com.intellij.openapi.progress.ProgressIndicator;
-import com.intellij.openapi.progress.ProgressManager;
-import com.intellij.openapi.progress.Task;
-import com.intellij.openapi.project.DumbService;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.projectRoots.JavaSdk;
-import com.intellij.openapi.projectRoots.ex.JavaSdkUtil;
 import com.intellij.openapi.roots.*;
-import com.intellij.openapi.roots.ui.configuration.SdkLookupUtil;
 import com.intellij.openapi.ui.Messages;
+import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VfsUtil;
-import com.intellij.openapi.vfs.VfsUtilCore;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
-import com.intellij.util.IncorrectOperationException;
-import com.intellij.util.SlowOperations;
-import com.intellij.util.containers.ContainerUtil;
+import com.intellij.util.containers.FList;
+import com.intellij.util.ui.EDT;
+import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
-import java.io.IOException;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
@@ -46,19 +34,19 @@ import java.util.stream.Collectors;
 
 public class CodingUtils {
 
-    protected static final Logger LOG = Logger.getInstance(CodingUtils.class);
+    private static @NotNull FList<@NotNull String> slowOperationStack = FList.emptyList();
 
     public static PsiClass findClassInProjectByName(String simpleName, Project project) {
-        return findClassByName(simpleName, null, project, GlobalSearchScope.projectScope(project));
-    }
-
-    public static PsiClass findClassInProjectByName(String simpleName, String packageName, Project project) {
-        return findClassInProjectByFullName(StringUtil.getQualifiedName(packageName, simpleName), project);
+        PsiShortNamesCache shortNamesCache = PsiShortNamesCache.getInstance(project);
+        return allowSlowOperations(() -> {
+            PsiClass[] classes = shortNamesCache.getClassesByName(simpleName, GlobalSearchScope.projectScope(project));
+            return classes.length > 0 ? classes[0] : null;
+        });
     }
 
     public static PsiClass findClassInProjectByFullName(String fullName, Project project) {
         JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
-        return SlowOperations.allowSlowOperations(() -> facade.findClass(fullName, GlobalSearchScope.projectScope(project)));
+        return allowSlowOperations(() -> facade.findClass(fullName, GlobalSearchScope.projectScope(project)));
     }
 
     public static PsiClass findClassInDirectory(String className, PsiDirectory directory) {
@@ -71,58 +59,6 @@ public class CodingUtils {
             }
         }
         return null;
-    }
-
-    public static PsiClass findClassInSamePackageByName(String className, PsiClass anotherClass) {
-        PsiDirectory directory = anotherClass.getContainingFile().getContainingDirectory();
-        PsiClass psiClass = findClassInDirectory(className, directory);
-        if (psiClass != null) {
-            return psiClass;
-        }
-        String packageName = anotherClass.getQualifiedName();
-        if (packageName == null) {
-            return null;
-        }
-        String fullName = StringUtil.getQualifiedName(packageName, className);
-        return findClassInProjectByFullName(fullName, anotherClass.getProject());
-    }
-
-    public static PsiClass findClassInAllScopeByName(String simpleName, String subpackage, Project project) {
-        return findClassByName(simpleName, subpackage, project, GlobalSearchScope.allScope(project));
-    }
-
-    public static PsiClass findClassByName(String simpleName, String subpackage, Project project, GlobalSearchScope searchScope) {
-        PsiShortNamesCache shortNamesCache = PsiShortNamesCache.getInstance(project);
-        return SlowOperations.allowSlowOperations(() -> {
-            PsiClass[] classes = shortNamesCache.getClassesByName(simpleName, searchScope);
-            for (PsiClass clazz : classes) {
-                if (subpackage == null) {
-                    return clazz;
-                }
-                String fullName = clazz.getQualifiedName();
-                if (fullName != null && fullName.endsWith(subpackage + "." + simpleName)) {
-                    return clazz;
-                }
-            }
-            return null;
-        });
-    }
-
-    public static PsiClass createJavaClass(String className, String templateName, PsiDirectory directory) throws IncorrectOperationException {
-        if (className.contains(".")) {
-            String[] names = className.split("\\.");
-            for (int i = 0; i < names.length - 1; i++) {
-                directory = CreateFileAction.findOrCreateSubdirectory(directory, names[i]);
-            }
-            className = names[names.length - 1];
-        }
-
-        DumbService service = DumbService.getInstance(directory.getProject());
-        PsiDirectory finalDir = directory;
-        String finalClassName = className;
-        return service.computeWithAlternativeResolveEnabled(() -> JavaDirectoryService.getInstance()
-            .createClass(finalDir, finalClassName, templateName, false)
-        );
     }
 
     public static void modifyPsi(Project project, String actionName, Runnable action) {
@@ -155,7 +91,7 @@ public class CodingUtils {
                 return actionName;
             }
         };
-        SlowOperations.allowSlowOperations(()-> elementCreator.tryCreate(actionName));
+        allowSlowOperations(()-> elementCreator.tryCreate(actionName));
     }
 
     public static void shortenClassReferences(PsiElement element) {
@@ -188,50 +124,6 @@ public class CodingUtils {
         shortenClassReferences(created);
     }
 
-    public static PsiElement createLineBreak(Project project) {
-        return PsiParserFacade.SERVICE.getInstance(project).createWhiteSpaceFromText("\n\n");
-    }
-
-    public static void configureSDK(PsiDirectory dir) {
-        Module module = ModuleUtilCore.findModuleForPsiElement(dir);
-        if (module != null && ModuleRootManager.getInstance(module).getSdk() == null) {
-            Project project = dir.getProject();
-            ProgressManager.getInstance().run(new Task.Backgroundable(project, "Looking for JDK", true) {
-                @Override
-                public void run(@NotNull ProgressIndicator indicator) {
-                    SdkLookupUtil.findAndSetupSdk(project, indicator, JavaSdk.getInstance(), sdk -> {
-                        JavaSdkUtil.applyJdkToProject(project, sdk);
-                        ModuleRootModificationUtil.setModuleSdk(module, sdk);
-                        return null;
-                    });
-                }
-            });
-        }
-    }
-
-    public static PsiDirectory adjustDirectory(PsiDirectory directory, Set<? extends JpsModuleSourceRootType<?>> mySourceRootTypes) {
-        ProjectFileIndex index = ProjectRootManager.getInstance(directory.getProject()).getFileIndex();
-        if (mySourceRootTypes != null && !index.isUnderSourceRootOfType(directory.getVirtualFile(), mySourceRootTypes)) {
-            Module module = ModuleUtilCore.findModuleForPsiElement(directory);
-            if (module == null) return null;
-            ModifiableRootModel modifiableModel = ModuleRootManager.getInstance(module).getModifiableModel();
-            ContentEntry contentEntry =
-                ContainerUtil.find(modifiableModel.getContentEntries(), entry -> entry.getFile() != null && VfsUtilCore.isAncestor(entry.getFile(), directory.getVirtualFile(), false));
-            if (contentEntry == null) return null;
-            try {
-                VirtualFile src = WriteAction.compute(() -> VfsUtil.createDirectoryIfMissing(contentEntry.getFile(), "src"));
-                contentEntry.addSourceFolder(src, false);
-                WriteAction.run(modifiableModel::commit);
-                return PsiManager.getInstance(module.getProject()).findDirectory(src);
-            }
-            catch (IOException e) {
-                LOG.error(e);
-                return null;
-            }
-        }
-        return directory;
-    }
-
     public static boolean canAddClassHere(DataContext dataContext, Set<? extends JpsModuleSourceRootType<?>> sourceRootTypes) {
         final Project project = CommonDataKeys.PROJECT.getData(dataContext);
         final IdeView view = LangDataKeys.IDE_VIEW.getData(dataContext);
@@ -247,7 +139,7 @@ public class CodingUtils {
                 return true;
             }
             Module module = ModuleUtilCore.findModuleForPsiElement(dir);
-            if (module != null && ModuleType.is(module, GeneralModuleType.INSTANCE)) {
+            if (module != null) {
                 return true;
             }
         }
@@ -286,5 +178,43 @@ public class CodingUtils {
     public static PsiDirectory getOrCreateSubdirectory(PsiDirectory directory, String subdirectoryName) {
         PsiDirectory subdirectory = directory.findSubdirectory(subdirectoryName);
         return Objects.requireNonNullElseGet(subdirectory, () -> directory.createSubdirectory(subdirectoryName));
+    }
+
+    public static <T, E extends Throwable> T allowSlowOperations(@NotNull ThrowableComputable<T, E> computable) throws E {
+        try (AccessToken ignore = allowSlowOperations("generic")) {
+            return computable.compute();
+        }
+    }
+
+    public static @NotNull AccessToken allowSlowOperations(@NotNull @NonNls String activityName) {
+        if (!EDT.isCurrentThreadEdt()) {
+            return AccessToken.EMPTY_ACCESS_TOKEN;
+        }
+
+        FList<String> prev = slowOperationStack;
+        slowOperationStack = prev.prepend(activityName);
+        return new AccessToken() {
+            @Override
+            public void finish() {
+                //noinspection AssignmentToStaticFieldFromInstanceMethod
+                slowOperationStack = prev;
+            }
+        };
+    }
+
+    public static PsiClass createJavaClass(PsiDirectory directory, String name, String content) {
+        PsiJavaFile file = createJavaFile(directory, name, content);
+        PsiClass[] classes = file.getClasses();
+        if (classes.length == 0) {
+            throw new IllegalArgumentException("no class found");
+        }
+        return classes[0];
+    }
+
+    private static PsiJavaFile createJavaFile(PsiDirectory directory, String className, String content) {
+        String fileName = className + JavaFileType.INSTANCE.getDefaultExtension();
+        PsiFileFactory factory = PsiFileFactory.getInstance(directory.getProject());
+        PsiFile psiFile = factory.createFileFromText(fileName, JavaLanguage.INSTANCE, content, false, false);
+        return (PsiJavaFile) psiFile;
     }
 }
