@@ -27,6 +27,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -47,6 +48,14 @@ public class CodingUtils {
     public static PsiClass findClassInProjectByFullName(String fullName, Project project) {
         JavaPsiFacade facade = JavaPsiFacade.getInstance(project);
         return allowSlowOperations(() -> facade.findClass(fullName, GlobalSearchScope.projectScope(project)));
+    }
+
+    public static List<PsiClass> findAllClassInAllScopeByName(String simpleName, Project project) {
+        PsiShortNamesCache shortNamesCache = PsiShortNamesCache.getInstance(project);
+        return allowSlowOperations(() -> {
+            PsiClass[] classes = shortNamesCache.getClassesByName(simpleName, GlobalSearchScope.allScope(project));
+            return Arrays.asList(classes);
+        });
     }
 
     public static PsiClass findClassInDirectory(String className, PsiDirectory directory) {
@@ -193,13 +202,20 @@ public class CodingUtils {
 
         FList<String> prev = slowOperationStack;
         slowOperationStack = prev.prepend(activityName);
-        return new AccessToken() {
-            @Override
-            public void finish() {
-                //noinspection AssignmentToStaticFieldFromInstanceMethod
-                slowOperationStack = prev;
-            }
-        };
+        return new StackedAccessToken(prev);
+    }
+
+    private static class StackedAccessToken extends AccessToken {
+        private final FList<String> prev;
+
+        public StackedAccessToken(FList<String> prev) {
+            this.prev = prev;
+        }
+
+        @Override
+        public void finish() {
+            slowOperationStack = prev;
+        }
     }
 
     public static PsiClass createJavaClass(PsiDirectory directory, String name, String content) {

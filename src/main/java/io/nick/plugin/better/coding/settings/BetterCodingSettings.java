@@ -4,87 +4,138 @@ import com.intellij.openapi.components.PersistentStateComponent;
 import com.intellij.openapi.components.State;
 import com.intellij.openapi.components.Storage;
 import com.intellij.openapi.project.Project;
-import com.intellij.util.xmlb.XmlSerializerUtil;
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.PsiClass;
 import io.nick.plugin.better.coding.utils.CodeTemplate;
+import io.nick.plugin.better.coding.utils.CodingUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 @State(
     name = "io.nick.plugin.better.coding.settings.BetterCodingSettings",
     storages = @Storage("better-coding-settings.xml")
 )
-public class BetterCodingSettings implements PersistentStateComponent<BetterCodingSettings> {
+public class BetterCodingSettings implements PersistentStateComponent<BetterCodingSettings.State> {
+    public static class State implements Serializable {
+        public Set<String> logicalDeleteFields;
+        public String infoFieldTemplate;
+        public String infoClassTemplate;
+        public String entityTrackerClass;
+        public String entityTrackersClass;
+        public String entityNotFoundTemplate;
+    }
 
-    private Set<String> logicalDeleteFields = new HashSet<>(Arrays.asList("markedAsDeleted", "is_deleted", "is_delete", "deleted"));
-    private String infoFieldTemplate = CodeTemplate.getTemplate("info/add-field-from-dto.ftl");
-    private String infoClassTemplate = CodeTemplate.getTemplate("info/info-class.ftl");
-    private String entityTrackerClass = "EntityTracker";
-    private String entityTrackersClass = "EntityTrackers";
-    private String entityNotFoundTemplate = CodeTemplate.getTemplate("repository/entity-not-found.ftl");
+    private final Project project;
+    private volatile State state = new State();
 
     public static BetterCodingSettings getInstance(Project project) {
         return project.getService(BetterCodingSettings.class);
     }
 
-    @Override
-    public @Nullable BetterCodingSettings getState() {
-        return this;
+    public BetterCodingSettings(Project project) {
+        this.project = project;
     }
 
     @Override
-    public void loadState(@NotNull BetterCodingSettings state) {
-        XmlSerializerUtil.copyBean(state, this);
+    public @Nullable BetterCodingSettings.State getState() {
+        return state;
+    }
+
+    @Override
+    public void loadState(@NotNull BetterCodingSettings.State state) {
+        this.state = state;
     }
 
     public Set<String> getLogicalDeleteFields() {
-        return logicalDeleteFields;
+        State state = this.state;
+        if (state.logicalDeleteFields != null && !state.logicalDeleteFields.isEmpty()) {
+            return state.logicalDeleteFields;
+        } else {
+            return new HashSet<>(Arrays.asList("markedAsDeleted", "is_deleted", "is_delete", "deleted"));
+        }
     }
 
     public void setLogicalDeleteFields(Set<String> logicalDeleteFields) {
-        this.logicalDeleteFields = logicalDeleteFields;
+        state.logicalDeleteFields = logicalDeleteFields;
     }
 
     public String getInfoFieldTemplate() {
-        return infoFieldTemplate;
+        State state = this.state;
+        if (StringUtil.isNotEmpty(state.infoFieldTemplate)) {
+            return state.infoFieldTemplate;
+        } else {
+            return CodeTemplate.getTemplate("info/add-field-from-dto.ftl");
+        }
     }
 
     public void setInfoFieldTemplate(String infoFieldTemplate) {
-        this.infoFieldTemplate = infoFieldTemplate;
+        state.infoFieldTemplate = infoFieldTemplate;
     }
 
     public String getInfoClassTemplate() {
-        return infoClassTemplate;
+        State state = this.state;
+        if (StringUtil.isNotEmpty(state.infoClassTemplate)) {
+            return state.infoClassTemplate;
+        } else {
+            return CodeTemplate.getTemplate("info/info-class.ftl");
+        }
     }
 
     public void setInfoClassTemplate(String infoClassTemplate) {
-        this.infoClassTemplate = infoClassTemplate;
+        state.infoClassTemplate = infoClassTemplate;
     }
 
     public String getEntityTrackerClass() {
-        return entityTrackerClass;
+        State state = this.state;
+        if (StringUtil.isNotEmpty(state.entityTrackerClass)) {
+            return state.entityTrackerClass;
+        } else {
+            return findSuitableClassFullName("EntityTracker", project);
+        }
     }
 
     public void setEntityTrackerClass(String entityTrackerClass) {
-        this.entityTrackerClass = entityTrackerClass;
+        state.entityTrackerClass = entityTrackerClass;
     }
 
     public String getEntityTrackersClass() {
-        return entityTrackersClass;
+        State state = this.state;
+        if (StringUtil.isNotEmpty(state.entityTrackersClass)) {
+            return state.entityTrackersClass;
+        } else {
+            return findSuitableClassFullName("EntityTrackers", project);
+        }
     }
 
     public void setEntityTrackersClass(String entityTrackersClass) {
-        this.entityTrackersClass = entityTrackersClass;
+        state.entityTrackersClass = entityTrackersClass;
     }
 
     public String getEntityNotFoundTemplate() {
-        return entityNotFoundTemplate;
+        State state = this.state;
+        if (StringUtil.isNotEmpty(state.entityNotFoundTemplate)) {
+            return state.entityNotFoundTemplate;
+        } else {
+            return CodeTemplate.getTemplate("repository/entity-not-found.ftl");
+        }
     }
 
     public void setEntityNotFoundTemplate(String entityNotFoundTemplate) {
-        this.entityNotFoundTemplate = entityNotFoundTemplate;
+        state.entityNotFoundTemplate = entityNotFoundTemplate;
+    }
+
+    private static String findSuitableClassFullName(String simpleName, Project project) {
+        List<PsiClass> psiClasses = CodingUtils.findAllClassInAllScopeByName(simpleName, project);
+        if (!psiClasses.isEmpty() && psiClasses.get(0).getQualifiedName() != null) {
+            return psiClasses.get(0).getQualifiedName();
+        } else {
+            return simpleName;
+        }
     }
 }
