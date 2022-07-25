@@ -157,8 +157,8 @@ public class BetterCodingSettingsPanel extends JBPanel<BetterCodingSettingsPanel
         return dirty;
     }
 
-    public void reset(boolean dirty) {
-        this.dirty = dirty;
+    public void clearDirty() {
+        this.dirty = false;
     }
 
     @Override

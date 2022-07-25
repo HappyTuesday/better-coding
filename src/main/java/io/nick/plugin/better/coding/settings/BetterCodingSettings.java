@@ -12,10 +12,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.Serializable;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @State(
     name = "io.nick.plugin.better.coding.settings.BetterCodingSettings",
@@ -29,10 +26,11 @@ public class BetterCodingSettings implements PersistentStateComponent<BetterCodi
         public String entityTrackerClass;
         public String entityTrackersClass;
         public String entityNotFoundTemplate;
+        public Map<String, String> fieldAssignTemplates;
     }
 
     private final Project project;
-    private volatile State state = new State();
+    private State state = new State();
 
     public static BetterCodingSettings getInstance(Project project) {
         return project.getService(BetterCodingSettings.class);
@@ -53,7 +51,6 @@ public class BetterCodingSettings implements PersistentStateComponent<BetterCodi
     }
 
     public Set<String> getLogicalDeleteFields() {
-        State state = this.state;
         if (state.logicalDeleteFields != null && !state.logicalDeleteFields.isEmpty()) {
             return state.logicalDeleteFields;
         } else {
@@ -66,7 +63,6 @@ public class BetterCodingSettings implements PersistentStateComponent<BetterCodi
     }
 
     public String getInfoFieldTemplate() {
-        State state = this.state;
         if (StringUtil.isNotEmpty(state.infoFieldTemplate)) {
             return state.infoFieldTemplate;
         } else {
@@ -79,7 +75,6 @@ public class BetterCodingSettings implements PersistentStateComponent<BetterCodi
     }
 
     public String getInfoClassTemplate() {
-        State state = this.state;
         if (StringUtil.isNotEmpty(state.infoClassTemplate)) {
             return state.infoClassTemplate;
         } else {
@@ -92,7 +87,6 @@ public class BetterCodingSettings implements PersistentStateComponent<BetterCodi
     }
 
     public String getEntityTrackerClass() {
-        State state = this.state;
         if (StringUtil.isNotEmpty(state.entityTrackerClass)) {
             return state.entityTrackerClass;
         } else {
@@ -105,7 +99,6 @@ public class BetterCodingSettings implements PersistentStateComponent<BetterCodi
     }
 
     public String getEntityTrackersClass() {
-        State state = this.state;
         if (StringUtil.isNotEmpty(state.entityTrackersClass)) {
             return state.entityTrackersClass;
         } else {
@@ -118,7 +111,6 @@ public class BetterCodingSettings implements PersistentStateComponent<BetterCodi
     }
 
     public String getEntityNotFoundTemplate() {
-        State state = this.state;
         if (StringUtil.isNotEmpty(state.entityNotFoundTemplate)) {
             return state.entityNotFoundTemplate;
         } else {
@@ -128,6 +120,18 @@ public class BetterCodingSettings implements PersistentStateComponent<BetterCodi
 
     public void setEntityNotFoundTemplate(String entityNotFoundTemplate) {
         state.entityNotFoundTemplate = entityNotFoundTemplate;
+    }
+
+    public Map<String, String> getFieldAssignTemplates() {
+        if (state.fieldAssignTemplates != null && !state.fieldAssignTemplates.isEmpty()) {
+            return state.fieldAssignTemplates;
+        } else {
+            return Collections.emptyMap();
+        }
+    }
+
+    public void setFieldAssignTemplates(Map<String, String> fieldAssignTemplates) {
+        state.fieldAssignTemplates = fieldAssignTemplates;
     }
 
     private static String findSuitableClassFullName(String simpleName, Project project) {

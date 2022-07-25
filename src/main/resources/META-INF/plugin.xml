@@ -47,19 +47,21 @@
         <completion.contributor language="JAVA" implementationClass="io.nick.plugin.better.coding.model.repository.PersisterFieldCompletionContributor"/>
         <completion.contributor language="JAVA" implementationClass="io.nick.plugin.better.coding.model.repository.TrackerFieldCompletionContributor"/>
         <completion.contributor language="JAVA" implementationClass="io.nick.plugin.better.coding.app.copier.CopyToInfoCompletionContributor"/>
-        <intentionAction>
-            <className>io.nick.plugin.better.coding.coding.PropertyAssignIntentionAction</className>
-        </intentionAction>
+
+        <intentionAction><className>io.nick.plugin.better.coding.coding.DefaultPropertyAssignIntentionAction</className></intentionAction>
+        <intentionAction><className>io.nick.plugin.better.coding.coding.NonNullPropertyAssignIntentionAction</className></intentionAction>
+        <intentionAction><className>io.nick.plugin.better.coding.coding.NonEmptyPropertyAssignIntentionAction</className></intentionAction>
+        <intentionAction><className>io.nick.plugin.better.coding.coding.NonBlankPropertyAssignIntentionAction</className></intentionAction>
+        <intentionAction><className>io.nick.plugin.better.coding.coding.CustomPropertyAssignIntentionAction</className></intentionAction>
+
         <notificationGroup id="EntityCodingHelper" displayType="BALLOON"/>
         <projectService
-                serviceImplementation="io.nick.plugin.better.coding.settings.BetterCodingSettings"
-        />
+                serviceImplementation="io.nick.plugin.better.coding.settings.BetterCodingSettings"/>
         <projectConfigurable
                 parentId="tools"
                 instance="io.nick.plugin.better.coding.settings.BetterCodingSettingsConfigurable"
                 id="io.nick.plugin.better.coding.settings.BetterCodingSettingsConfigurable"
-                displayName="Better Coding"
-        />
+                displayName="Better Coding"/>
     </extensions>
 
     <actions>

@@ -1,27 +1,22 @@
 package io.nick.plugin.better.coding.coding;
 
 import com.intellij.codeInsight.intention.BaseElementAtCaretIntentionAction;
-import com.intellij.codeInspection.util.IntentionFamilyName;
-import com.intellij.codeInspection.util.IntentionName;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
 import com.intellij.psi.util.PropertyUtil;
 import com.intellij.psi.util.PsiUtil;
 import com.intellij.util.IncorrectOperationException;
+import io.nick.plugin.better.coding.utils.CodeTemplate;
+import io.nick.plugin.better.coding.utils.PsiTypeHelper;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
-public class PropertyAssignIntentionAction extends BaseElementAtCaretIntentionAction {
-    @Override
-    public @NotNull String getText() {
-        return "Assign properties";
-    }
-
+public abstract class PropertyAssignIntentionAction extends BaseElementAtCaretIntentionAction {
     @Override
     public @NotNull String getFamilyName() {
         return "Coding assist";
@@ -29,9 +24,6 @@ public class PropertyAssignIntentionAction extends BaseElementAtCaretIntentionAc
 
     @Override
     public boolean isAvailable(@NotNull Project project, Editor editor, @NotNull PsiElement element) {
-        if (!(element instanceof PsiIdentifier)) {
-            return false;
-        }
         if (!(element.getParent() instanceof PsiReferenceExpression)) {
             return false;
         }
@@ -63,69 +55,77 @@ public class PropertyAssignIntentionAction extends BaseElementAtCaretIntentionAc
         }
 
         PsiAssignmentExpression assign = (PsiAssignmentExpression) current.getParent();
-        PsiExpression left = assign.getLExpression();
-        if (!(left.getType() instanceof PsiClassType)) {
+        processAssignExpression(project, currentType, assign, editor);
+    }
+
+    protected abstract void processAssignExpression(Project project, PsiClass currentType, PsiAssignmentExpression assign, Editor editor);
+
+    protected void generateAssignments(Project project, PsiClass currentType, PsiAssignmentExpression assign, String assignTemplate) {
+        PsiExpression leftExpr = assign.getLExpression();
+        if (!(leftExpr.getType() instanceof PsiClassType)) {
             return;
         }
-        PsiClass leftType = ((PsiClassType) left.getType()).resolve();
+        PsiClass leftType = ((PsiClassType) leftExpr.getType()).resolve();
         if (leftType == null) {
             return;
         }
-        PsiExpression right = assign.getRExpression();
-        if (right == null) {
+        PsiExpression rightExpr = assign.getRExpression();
+        if (rightExpr == null) {
             return;
         }
-        if (!(right.getType() instanceof PsiClassType)) {
+        if (!(rightExpr.getType() instanceof PsiClassType)) {
             return;
         }
-        PsiClass rightType = ((PsiClassType) right.getType()).resolve();
+        PsiClass rightType = ((PsiClassType) rightExpr.getType()).resolve();
         if (rightType == null) {
             return;
         }
 
         PsiElementFactory factory = JavaPsiFacade.getElementFactory(project);
         List<PsiStatement> statements = new ArrayList<>();
-        Set<PsiField> assignedFields = new LinkedHashSet<>();
 
-        String leftText = left.getText();
-        String rightText = right.getText();
+        List<String> propertyNamesToConsider = Stream.concat(
+                Arrays.stream(currentType.getAllFields())
+                    .map(PsiField::getName),
+                Arrays.stream(currentType.getAllMethods())
+                    .map(PropertyUtil::getPropertyName)
+                    .filter(Objects::nonNull)
+            )
+            .distinct()
+            .collect(Collectors.toList());
 
-        for (PsiField field : currentType.getAllFields()) {
-            if (!assignedFields.add(field)) {
+        PsiTypeHelper typeHelper = new PsiTypeHelper();
+
+        for (String propertyName : propertyNamesToConsider) {
+            PsiField leftField = filterSuitableField(leftType.findFieldByName(propertyName, true), assign, leftType);
+            PsiMethod leftSetter = filterSuitableMethod(PropertyUtil.findPropertySetter(leftType, propertyName, false, true), assign, leftType);
+            PsiField rightField = filterSuitableField(rightType.findFieldByName(propertyName, true), assign, rightType);
+            PsiMethod rightGetter = filterSuitableMethod(PropertyUtil.findPropertyGetter(rightType, propertyName, false, true), assign, rightType);
+            if (leftField == null && leftSetter == null || rightField == null && rightGetter == null) {
                 continue;
             }
-            String fieldName = field.getName();
-            String text;
 
-            PsiField leftField = leftType.findFieldByName(fieldName, true);
-            if (memberInConsider(leftField, element, leftType)) {
-                PsiField rightField = rightType.findFieldByName(fieldName, true);
-                if (memberInConsider(rightField, element, rightType)) {
-                    text = String.format("%s.%s = %s.%s;", leftText, leftField.getName(), rightText, rightField.getName());
-                } else {
-                    PsiMethod rightGetter = PropertyUtil.findPropertyGetter(rightType, fieldName, false, true);
-                    if (!memberInConsider(rightGetter, element, rightType)) {
-                        continue;
-                    }
-                    text = String.format("%s.%s = %s.%s();", leftText, leftField.getName(), rightText, rightGetter.getName());
-                }
-            } else {
-                PsiMethod leftSetter = PropertyUtil.findPropertySetter(leftType, fieldName, false, true);
-                if (!memberInConsider(leftSetter, element, leftType)) {
-                    continue;
-                }
-                PsiField rightField = rightType.findFieldByName(fieldName, true);
-                if (memberInConsider(rightField, element, rightType)) {
-                    text = String.format("%s.%s(%s.%s);", leftText, leftSetter.getName(), rightText, rightField.getName());
-                } else {
-                    PsiMethod rightGetter = PropertyUtil.findPropertyGetter(rightType, fieldName, false, true);
-                    if (!memberInConsider(rightGetter, element, rightType)) {
-                        continue;
-                    }
-                    text = String.format("%s.%s(%s.%s());", leftText, leftSetter.getName(), rightText, rightGetter.getName());
-                }
+            PsiType leftPropertyType = leftField != null ? leftField.getType() : PropertyUtil.getPropertyType(leftSetter);
+            PsiType rightPropertyType = rightField != null ? rightField.getType() : PropertyUtil.getPropertyType(rightGetter);
+
+            Map<String, Object> params = new LinkedHashMap<>();
+            params.put("propertyName", propertyName);
+            params.put("leftPropertyType", leftPropertyType);
+            params.put("leftExpr", leftExpr);
+            params.put("leftField", leftField);
+            params.put("leftSetter", leftSetter);
+            params.put("rightExpr", rightExpr);
+            params.put("rightPropertyType", rightPropertyType);
+            params.put("rightField", rightField);
+            params.put("rightGetter", rightGetter);
+            params.put("typeHelper", typeHelper);
+
+            String text = CodeTemplate.INSTANCE.render("assign-property", assignTemplate, params).stripLeading();
+            if (StringUtil.isEmpty(text)) {
+                continue;
             }
-            PsiStatement statement = factory.createStatementFromText(text, element);
+
+            PsiStatement statement = factory.createStatementFromText(text, assign);
             statements.add(statement);
         }
 
@@ -141,7 +141,15 @@ public class PropertyAssignIntentionAction extends BaseElementAtCaretIntentionAc
         assignStatement.delete();
     }
 
-    private static boolean memberInConsider(PsiMember member, PsiElement location, PsiClass accessObjectClass) {
+    protected static PsiMethod filterSuitableMethod(PsiMethod method, PsiElement location, PsiClass accessObjectClass) {
+        return memberInConsider(method, location, accessObjectClass) ? method : null;
+    }
+
+    protected static PsiField filterSuitableField(PsiField field, PsiElement location, PsiClass accessObjectClass) {
+        return memberInConsider(field, location, accessObjectClass) ? field : null;
+    }
+
+    protected static boolean memberInConsider(PsiMember member, PsiElement location, PsiClass accessObjectClass) {
         if (member == null) {
             return false;
         }

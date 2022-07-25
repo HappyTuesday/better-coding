@@ -228,9 +228,9 @@ public class CodingUtils {
     }
 
     private static PsiJavaFile createJavaFile(PsiDirectory directory, String className, String content) {
-        String fileName = className + JavaFileType.INSTANCE.getDefaultExtension();
+        String fileName = className + "." + JavaFileType.INSTANCE.getDefaultExtension();
         PsiFileFactory factory = PsiFileFactory.getInstance(directory.getProject());
         PsiFile psiFile = factory.createFileFromText(fileName, JavaLanguage.INSTANCE, content, false, false);
-        return (PsiJavaFile) psiFile;
+        return (PsiJavaFile) directory.add(psiFile);
     }
 }
