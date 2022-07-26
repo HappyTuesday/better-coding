@@ -1,4 +1,4 @@
-<#-- @ftlvariable name="infoProxy" type="io.nick.plugin.better.coding.proxy.InfoProxy" -->
+<#-- @ftlvariable name="infoProxy" type="io.volantis.plugin.better.coding.proxy.InfoProxy" -->
 package ${infoProxy.packageName};
 
 /**

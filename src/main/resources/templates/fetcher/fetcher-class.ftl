@@ -1,4 +1,4 @@
-<#-- @ftlvariable name="fetcherProxy" type="io.nick.plugin.better.coding.proxy.FetcherProxy" -->
+<#-- @ftlvariable name="fetcherProxy" type="io.volantis.plugin.better.coding.proxy.FetcherProxy" -->
 package ${fetcherProxy.packageName};
 
 /**

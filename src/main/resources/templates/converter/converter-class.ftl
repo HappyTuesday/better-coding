@@ -1,4 +1,4 @@
-<#-- @ftlvariable name="converterProxy" type="io.nick.plugin.better.coding.proxy.ConverterProxy" -->
+<#-- @ftlvariable name="converterProxy" type="io.volantis.plugin.better.coding.proxy.ConverterProxy" -->
 package ${converterProxy.packageName};
 
 /**

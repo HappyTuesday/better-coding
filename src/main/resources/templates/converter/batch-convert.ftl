@@ -1,7 +1,7 @@
-<#-- @ftlvariable name="method" type="io.nick.plugin.better.coding.app.converter.BatchConvertToInfoMethod" -->
+<#-- @ftlvariable name="method" type="io.volantis.plugin.better.coding.app.converter.BatchConvertToInfoMethod" -->
 <#assign queryModel = method.queryModel>
 <#macro join_from_dto join>
-<#-- @ftlvariable name="join" type="io.nick.plugin.better.coding.app.QueryModel.Join" -->
+<#-- @ftlvariable name="join" type="io.volantis.plugin.better.coding.app.QueryModel.Join" -->
     <#local source = join.source.dtoSource/>
     <#local referredSource = join.referredSource/>
     // join ${source.dtoProxy.className} to ${queryModel.target.className}
@@ -27,7 +27,7 @@
     }
 </#macro>
 <#macro join_from_info join>
-<#-- @ftlvariable name="join" type="io.nick.plugin.better.coding.app.QueryModel.Join" -->
+<#-- @ftlvariable name="join" type="io.volantis.plugin.better.coding.app.QueryModel.Join" -->
     <#local source = join.source.infoSource/>
     <#local referredSource = join.referredSource/>
     // prepare the data of ${source.dtoProxy.className}

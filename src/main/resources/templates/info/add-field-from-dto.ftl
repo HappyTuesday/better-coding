@@ -1,4 +1,4 @@
-<#-- @ftlvariable name="dtoField" type="io.nick.plugin.better.coding.proxy.DtoField" -->
+<#-- @ftlvariable name="dtoField" type="io.volantis.plugin.better.coding.proxy.DtoField" -->
 <#-- @ftlvariable name="fieldPrefix" type="java.lang.String" -->
 /**
 <#if dtoField.comment??>

@@ -7,7 +7,7 @@
 <#-- @ftlvariable name="rightPropertyType" type="com.intellij.psi.PsiType" -->
 <#-- @ftlvariable name="rightField" type="com.intellij.psi.PsiField" -->
 <#-- @ftlvariable name="rightGetter" type="com.intellij.psi.PsiMethod" -->
-<#-- @ftlvariable name="typeHelper" type="io.nick.plugin.better.coding.utils.PsiTypeHelper" -->
+<#-- @ftlvariable name="typeHelper" type="io.volantis.plugin.better.coding.utils.PsiTypeHelper" -->
 <#assign right>
     ${rightExpr.text}.<#if rightField??>${rightField.name}<#else>${rightGetter.name}()</#if><#t>
 </#assign>

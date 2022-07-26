@@ -1,6 +1,6 @@
-<#-- @ftlvariable name="entityProxy" type="io.nick.plugin.better.coding.proxy.EntityProxy" -->
-<#-- @ftlvariable name="repoProxy" type="io.nick.plugin.better.coding.proxy.RepoProxy" -->
-<#-- @ftlvariable name="dtoProxy" type="io.nick.plugin.better.coding.proxy.DtoProxy" -->
+<#-- @ftlvariable name="entityProxy" type="io.volantis.plugin.better.coding.proxy.EntityProxy" -->
+<#-- @ftlvariable name="repoProxy" type="io.volantis.plugin.better.coding.proxy.RepoProxy" -->
+<#-- @ftlvariable name="dtoProxy" type="io.volantis.plugin.better.coding.proxy.DtoProxy" -->
 private ${dtoProxy.qualifiedName} ${repoProxy.convertToDTOMethodName(entityProxy)}(${entityProxy.qualifiedName} ${entityProxy.varName}) {
     ${dtoProxy.qualifiedName} ${dtoProxy.varName} = new ${dtoProxy.qualifiedName}();
     <#list dtoProxy.dtoFields as dtoField>

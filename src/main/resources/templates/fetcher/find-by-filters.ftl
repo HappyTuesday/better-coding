@@ -1,4 +1,4 @@
-<#-- @ftlvariable name="method" type="io.nick.plugin.better.coding.app.fetcher.FindByFiltersMethod" -->
+<#-- @ftlvariable name="method" type="io.volantis.plugin.better.coding.app.fetcher.FindByFiltersMethod" -->
 <#assign dtoProxy = method.dtoProxy/>
 public java.util.List<${dtoProxy.qualifiedName}> ${method.methodName}(<#list method.parameters as p>${p.paramType.canonicalText} ${p.paramName}<#sep>, </#list>) {
 <#if dtoProxy.mapperProxy?? && dtoProxy.exampleProxy??>

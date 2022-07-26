@@ -1,5 +1,5 @@
 <idea-plugin>
-    <id>io.nick.better.coding</id>
+    <id>io.volantis.better.coding</id>
     <name>Better Coding</name>
     <vendor email="HappyTuesday@live.cn" url="https://github.com/HappyTuesday/">Nick</vendor>
 
@@ -40,45 +40,45 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <!-- Add your extensions here -->
-        <completion.contributor language="JAVA" implementationClass="io.nick.plugin.better.coding.model.repository.EntityToDTOCompletionContributor"/>
-        <completion.contributor language="JAVA" implementationClass="io.nick.plugin.better.coding.model.repository.EntityInitFromDTOCompletionContributor"/>
-        <completion.contributor language="JAVA" implementationClass="io.nick.plugin.better.coding.model.repository.EntityOfKeyCompletionContributor"/>
-        <completion.contributor language="JAVA" implementationClass="io.nick.plugin.better.coding.model.repository.RestoreEntityCompletionContributor"/>
-        <completion.contributor language="JAVA" implementationClass="io.nick.plugin.better.coding.model.repository.PersisterFieldCompletionContributor"/>
-        <completion.contributor language="JAVA" implementationClass="io.nick.plugin.better.coding.model.repository.TrackerFieldCompletionContributor"/>
-        <completion.contributor language="JAVA" implementationClass="io.nick.plugin.better.coding.app.copier.CopyToInfoCompletionContributor"/>
+        <completion.contributor language="JAVA" implementationClass="io.volantis.plugin.better.coding.model.repository.EntityToDTOCompletionContributor"/>
+        <completion.contributor language="JAVA" implementationClass="io.volantis.plugin.better.coding.model.repository.EntityInitFromDTOCompletionContributor"/>
+        <completion.contributor language="JAVA" implementationClass="io.volantis.plugin.better.coding.model.repository.EntityOfKeyCompletionContributor"/>
+        <completion.contributor language="JAVA" implementationClass="io.volantis.plugin.better.coding.model.repository.RestoreEntityCompletionContributor"/>
+        <completion.contributor language="JAVA" implementationClass="io.volantis.plugin.better.coding.model.repository.PersisterFieldCompletionContributor"/>
+        <completion.contributor language="JAVA" implementationClass="io.volantis.plugin.better.coding.model.repository.TrackerFieldCompletionContributor"/>
+        <completion.contributor language="JAVA" implementationClass="io.volantis.plugin.better.coding.app.copier.CopyToInfoCompletionContributor"/>
 
-        <intentionAction><className>io.nick.plugin.better.coding.coding.DefaultPropertyAssignIntentionAction</className></intentionAction>
-        <intentionAction><className>io.nick.plugin.better.coding.coding.NonNullPropertyAssignIntentionAction</className></intentionAction>
-        <intentionAction><className>io.nick.plugin.better.coding.coding.NonEmptyPropertyAssignIntentionAction</className></intentionAction>
-        <intentionAction><className>io.nick.plugin.better.coding.coding.NonBlankPropertyAssignIntentionAction</className></intentionAction>
-        <intentionAction><className>io.nick.plugin.better.coding.coding.CustomPropertyAssignIntentionAction</className></intentionAction>
+        <intentionAction><className>io.volantis.plugin.better.coding.coding.DefaultPropertyAssignIntentionAction</className></intentionAction>
+        <intentionAction><className>io.volantis.plugin.better.coding.coding.NonNullPropertyAssignIntentionAction</className></intentionAction>
+        <intentionAction><className>io.volantis.plugin.better.coding.coding.NonEmptyPropertyAssignIntentionAction</className></intentionAction>
+        <intentionAction><className>io.volantis.plugin.better.coding.coding.NonBlankPropertyAssignIntentionAction</className></intentionAction>
+        <intentionAction><className>io.volantis.plugin.better.coding.coding.CustomPropertyAssignIntentionAction</className></intentionAction>
 
         <notificationGroup id="EntityCodingHelper" displayType="BALLOON"/>
         <projectService
-                serviceImplementation="io.nick.plugin.better.coding.settings.BetterCodingSettings"/>
+                serviceImplementation="io.volantis.plugin.better.coding.settings.BetterCodingSettings"/>
         <projectConfigurable
                 parentId="tools"
-                instance="io.nick.plugin.better.coding.settings.BetterCodingSettingsConfigurable"
-                id="io.nick.plugin.better.coding.settings.BetterCodingSettingsConfigurable"
+                instance="io.volantis.plugin.better.coding.settings.BetterCodingSettingsConfigurable"
+                id="io.volantis.plugin.better.coding.settings.BetterCodingSettingsConfigurable"
                 displayName="Better Coding"/>
     </extensions>
 
     <actions>
         <!-- Add your actions here -->
-        <action id="CreateEntity" class="io.nick.plugin.better.coding.model.entity.CreateEntityClassAction">
+        <action id="CreateEntity" class="io.volantis.plugin.better.coding.model.entity.CreateEntityClassAction">
             <add-to-group group-id="NewGroup1"/>
         </action>
-        <action id="AddEntityToRepository" class="io.nick.plugin.better.coding.model.entity.AddEntityToRepositoryAction">
+        <action id="AddEntityToRepository" class="io.volantis.plugin.better.coding.model.entity.AddEntityToRepositoryAction">
             <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="Generate"/>
         </action>
-        <action id="CreateInfo" class="io.nick.plugin.better.coding.api.info.CreateInfoClassAction">
+        <action id="CreateInfo" class="io.volantis.plugin.better.coding.api.info.CreateInfoClassAction">
             <add-to-group group-id="NewGroup1"/>
         </action>
-        <action id="ImportFieldsFromDTO" class="io.nick.plugin.better.coding.api.info.ImportFieldsFromDTOAction">
+        <action id="ImportFieldsFromDTO" class="io.volantis.plugin.better.coding.api.info.ImportFieldsFromDTOAction">
             <add-to-group group-id="EditorPopupMenu" anchor="after" relative-to-action="Generate"/>
         </action>
-        <action id="ConvertToInfoAction" class="io.nick.plugin.better.coding.app.ConvertToInfoAction">
+        <action id="ConvertToInfoAction" class="io.volantis.plugin.better.coding.app.ConvertToInfoAction">
             <add-to-group group-id="NewGroup1"/>
         </action>
     </actions>

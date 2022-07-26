@@ -1,4 +1,4 @@
-<#-- @ftlvariable name="copierProxy" type="io.nick.plugin.better.coding.proxy.CopierProxy" -->
+<#-- @ftlvariable name="copierProxy" type="io.volantis.plugin.better.coding.proxy.CopierProxy" -->
 package ${copierProxy.packageName};
 
 /**
