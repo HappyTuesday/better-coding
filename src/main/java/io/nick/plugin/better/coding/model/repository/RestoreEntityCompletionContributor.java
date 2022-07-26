@@ -82,7 +82,7 @@ public class RestoreEntityCompletionContributor extends RepoMemberForEntityContr
 
         @Override
         public PsiMethod generateMember() {
-            return repoProxy.createRestoreEntityMethod(entityProxy, dtoProxy);
+            return repoProxy.createRestoreEntitiesMethod(entityProxy, dtoProxy);
         }
     }
 }

@@ -8,7 +8,6 @@ import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.CommonDataKeys;
 import com.intellij.openapi.actionSystem.DataContext;
 import com.intellij.openapi.actionSystem.LangDataKeys;
-import com.intellij.openapi.application.AccessToken;
 import com.intellij.openapi.module.Module;
 import com.intellij.openapi.module.ModuleUtilCore;
 import com.intellij.openapi.project.Project;
@@ -20,9 +19,6 @@ import com.intellij.psi.*;
 import com.intellij.psi.codeStyle.JavaCodeStyleManager;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.search.PsiShortNamesCache;
-import com.intellij.util.containers.FList;
-import com.intellij.util.ui.EDT;
-import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.jps.model.module.JpsModuleSourceRootType;
 
@@ -34,9 +30,6 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 public class CodingUtils {
-
-    private static @NotNull FList<@NotNull String> slowOperationStack = FList.emptyList();
-
     public static PsiClass findClassInProjectByName(String simpleName, Project project) {
         PsiShortNamesCache shortNamesCache = PsiShortNamesCache.getInstance(project);
         return allowSlowOperations(() -> {
@@ -190,32 +183,7 @@ public class CodingUtils {
     }
 
     public static <T, E extends Throwable> T allowSlowOperations(@NotNull ThrowableComputable<T, E> computable) throws E {
-        try (AccessToken ignore = allowSlowOperations("generic")) {
-            return computable.compute();
-        }
-    }
-
-    public static @NotNull AccessToken allowSlowOperations(@NotNull @NonNls String activityName) {
-        if (!EDT.isCurrentThreadEdt()) {
-            return AccessToken.EMPTY_ACCESS_TOKEN;
-        }
-
-        FList<String> prev = slowOperationStack;
-        slowOperationStack = prev.prepend(activityName);
-        return new StackedAccessToken(prev);
-    }
-
-    private static class StackedAccessToken extends AccessToken {
-        private final FList<String> prev;
-
-        public StackedAccessToken(FList<String> prev) {
-            this.prev = prev;
-        }
-
-        @Override
-        public void finish() {
-            slowOperationStack = prev;
-        }
+        return computable.compute();
     }
 
     public static PsiClass createJavaClass(PsiDirectory directory, String name, String content) {

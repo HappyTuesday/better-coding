@@ -276,7 +276,7 @@ public class QueryModelPanel extends JBPanel<QueryModelPanel> {
         public ExtraQueryBox(PsiDirectory directory, InfoProxy targetInfo, DtoProxy fromDTO, List<DtoProxy> dtoChoices) {
             super(new VerticalLayout(10));
             this.targetInfo = targetInfo;
-            Border border = JBUI.Borders.customLineTop(Color.decode("0x515151"));
+            Border border = JBUI.Borders.customLine(Color.decode("0x515151"), 1, 0, 0, 0);
             setBorder(border);
 
             JBLabel targetInfoLabel = new JBLabel(targetInfo.getClassName());

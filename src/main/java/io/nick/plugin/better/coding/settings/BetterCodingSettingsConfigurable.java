@@ -1,16 +1,24 @@
 package io.nick.plugin.better.coding.settings;
 
 import com.intellij.openapi.options.Configurable;
+import com.intellij.openapi.options.SearchableConfigurable;
 import com.intellij.openapi.project.Project;
 import io.nick.plugin.better.coding.utils.CodingUtils;
+import org.jetbrains.annotations.NonNls;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
 
-public class BetterCodingSettingsConfigurable implements Configurable {
+public class BetterCodingSettingsConfigurable implements Configurable, SearchableConfigurable {
     private final Project project;
     private BetterCodingSettingsPanel settingsPanel;
     private final BetterCodingSettings settings;
+
+    @Override
+    public @NotNull @NonNls String getId() {
+        return "io.nick.plugin.better.coding.settings.BetterCodingSettingsConfigurable";
+    }
 
     public BetterCodingSettingsConfigurable(Project project) {
         this.project = project;
