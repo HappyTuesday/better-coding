@@ -24,7 +24,11 @@ intellij {
     downloadSources = true
 }
 patchPluginXml {
-    changeNotes = """Plugin description refined"""
+    changeNotes = """
+    1. Group id changed
+    2. Referrences will be shorten after class created
+    3. Add template settings
+    """
 }
 test {
     useJUnitPlatform()

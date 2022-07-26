@@ -19,7 +19,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-public class AddEntityToRepositoryAction extends AnAction implements UpdateInBackground, WriteActionAware, DumbAware {
+public class AddEntityToRepositoryAction extends AnAction implements WriteActionAware, DumbAware {
     public AddEntityToRepositoryAction() {
         super("Add To Repository", "Add to repository", null);
     }

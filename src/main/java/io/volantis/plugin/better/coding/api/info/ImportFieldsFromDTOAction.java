@@ -14,7 +14,7 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
-public class ImportFieldsFromDTOAction extends AnAction implements UpdateInBackground, WriteActionAware, DumbAware {
+public class ImportFieldsFromDTOAction extends AnAction implements WriteActionAware, DumbAware {
     public ImportFieldsFromDTOAction() {
         super("Import Fields from DTO", "Import Fields from DTO", null);
     }

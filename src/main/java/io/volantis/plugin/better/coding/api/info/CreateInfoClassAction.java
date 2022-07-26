@@ -21,7 +21,7 @@ import javax.swing.*;
 import java.util.List;
 import java.util.Set;
 
-public class CreateInfoClassAction extends AnAction implements UpdateInBackground, WriteActionAware, DumbAware {
+public class CreateInfoClassAction extends AnAction implements WriteActionAware, DumbAware {
     @Nullable
     private final Set<? extends JpsModuleSourceRootType<?>> mySourceRootTypes;
 
